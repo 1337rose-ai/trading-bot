@@ -31,9 +31,9 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
     if body.get('secret') != SECRET:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    symbol = body.get('symbol', 'BTCUSDT')
-    action = body.get('action', '').upper()
-    price = body.get('price', 'market price')
+    symbol    = body.get('symbol', 'BTCUSDT')
+    action    = body.get('action', '').upper()
+    price     = body.get('price', 'market price')
     timeframe = body.get('timeframe', 'unknown')
 
     if action not in ['BUY', 'SELL']:
@@ -45,12 +45,17 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
             f"Symbol: {symbol}\n"
             f"Price: {price}\n"
             f"Timeframe: {timeframe}\n"
-            f"Instructions: Check account balance, check current market price, "
-            f"then place a BUY market order on {symbol}. "
-            f"Size the position at 1 percent of account equity. "
-            f"Set a stop loss 2 percent below entry price. "
-            f"Set a take profit 4 percent above entry price. "
-            f"Follow all risk management rules."
+            f"Instructions:\n"
+            f"Step 1 - Check for any open positions on {symbol}. "
+            f"If a position exists close it immediately.\n"
+            f"Step 2 - Cancel any pending re-entry orders.\n"
+            f"Step 3 - Check current market price of {symbol}.\n"
+            f"Step 4 - Place BUY market order:\n"
+            f"  Quantity = 250 divided by current price\n"
+            f"  Stop Loss = 1 percent below entry\n"
+            f"  Take Profit = 2 percent above entry\n"
+            f"  Trailing Stop = 0.5 percent\n"
+            f"  Max loss: $2.50 | Target profit: $5.00"
         )
     elif action == 'SELL':
         signal = (
@@ -58,12 +63,17 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
             f"Symbol: {symbol}\n"
             f"Price: {price}\n"
             f"Timeframe: {timeframe}\n"
-            f"Instructions: Check account balance, check current market price, "
-            f"then place a SELL market order on {symbol}. "
-            f"Size the position at 1 percent of account equity. "
-            f"Set a stop loss 2 percent above entry price. "
-            f"Set a take profit 4 percent below entry price. "
-            f"Follow all risk management rules."
+            f"Instructions:\n"
+            f"Step 1 - Check for any open positions on {symbol}. "
+            f"If a position exists close it immediately.\n"
+            f"Step 2 - Cancel any pending re-entry orders.\n"
+            f"Step 3 - Check current market price of {symbol}.\n"
+            f"Step 4 - Place SELL market order:\n"
+            f"  Quantity = 250 divided by current price\n"
+            f"  Stop Loss = 1 percent above entry\n"
+            f"  Take Profit = 2 percent below entry\n"
+            f"  Trailing Stop = 0.5 percent\n"
+            f"  Max loss: $2.50 | Target profit: $5.00"
         )
 
     bg.add_task(run_agent, signal, True)
@@ -72,7 +82,7 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
         "status": "Signal received",
         "symbol": symbol,
         "action": action,
-        "agent": "running"
+        "agent":  "running"
     }
 
 @app.post("/command")
@@ -89,9 +99,9 @@ async def manual_command(request: Request, bg: BackgroundTasks):
     bg.add_task(run_agent, command)
 
     return {
-        "status": "Command received",
+        "status":  "Command received",
         "command": command,
-        "agent": "running"
+        "agent":   "running"
     }
 
 if __name__ == "__main__":

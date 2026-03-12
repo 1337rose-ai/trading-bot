@@ -10,7 +10,7 @@ TRADING_TOOLS = [
     },
     {
         "name": "get_market_price",
-        "description": "Get the current market price for a trading symbol.",
+        "description": "Get the current market price for a symbol.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -24,40 +24,19 @@ TRADING_TOOLS = [
     },
     {
         "name": "place_order",
-        "description": "Place a market or limit order on ByBit.",
+        "description": "Place a market order on ByBit with SL, TP and trailing stop.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "symbol": {
-                    "type": "string",
-                    "description": "Trading pair e.g. BTCUSDT"
-                },
-                "side": {
-                    "type": "string",
-                    "enum": ["Buy", "Sell"]
-                },
-                "qty": {
-                    "type": "number",
-                    "description": "Order quantity"
-                },
-                "order_type": {
-                    "type": "string",
-                    "enum": ["Market", "Limit"]
-                },
-                "price": {
-                    "type": "number",
-                    "description": "Price for limit orders only"
-                },
-                "stop_loss": {
-                    "type": "number",
-                    "description": "Stop loss price"
-                },
-                "take_profit": {
-                    "type": "number",
-                    "description": "Take profit price"
-                }
+                "symbol":        { "type": "string" },
+                "side":          { "type": "string", "enum": ["Buy", "Sell"] },
+                "qty":           { "type": "number" },
+                "price":         { "type": "number", "description": "Entry price for reference" },
+                "stop_loss":     { "type": "number" },
+                "take_profit":   { "type": "number" },
+                "trailing_stop": { "type": "number", "description": "Trailing stop percentage e.g. 0.5" }
             },
-            "required": ["symbol", "side", "qty", "order_type"]
+            "required": ["symbol", "side", "qty", "price", "stop_loss", "take_profit"]
         }
     },
     {
@@ -66,10 +45,7 @@ TRADING_TOOLS = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "symbol": {
-                    "type": "string",
-                    "description": "Trading pair e.g. BTCUSDT"
-                }
+                "symbol": { "type": "string" }
             },
             "required": ["symbol"]
         }
@@ -81,6 +57,46 @@ TRADING_TOOLS = [
             "type": "object",
             "properties": {},
             "required": []
+        }
+    },
+    {
+        "name": "check_reentry_conditions",
+        "description": "Check if conditions are met for a re-entry order after a break-even exit.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "symbol":        { "type": "string" },
+                "current_price": { "type": "number" }
+            },
+            "required": ["symbol", "current_price"]
+        }
+    },
+    {
+        "name": "place_reentry_order",
+        "description": "Place a re-entry stop order at the original entry price.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "symbol":        { "type": "string" },
+                "side":          { "type": "string", "enum": ["Buy", "Sell"] },
+                "qty":           { "type": "number" },
+                "entry_price":   { "type": "number" },
+                "stop_loss":     { "type": "number" },
+                "take_profit":   { "type": "number" },
+                "trailing_stop": { "type": "number" }
+            },
+            "required": ["symbol", "side", "qty", "entry_price", "stop_loss", "take_profit"]
+        }
+    },
+    {
+        "name": "cancel_reentry",
+        "description": "Cancel a pending re-entry stop order.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "symbol": { "type": "string" }
+            },
+            "required": ["symbol"]
         }
     }
 ]
