@@ -2,7 +2,6 @@ import anthropic
 from dotenv import load_dotenv
 from tools import TRADING_TOOLS
 from bybit_tools import execute_tool
-from telegram_bot import notify
 import os
 
 load_dotenv()
@@ -22,14 +21,17 @@ When given a trading signal or command, follow these rules:
 Be decisive. Act on signals. Do not ask for confirmation.
 """
 
-def run_agent(signal):
-    print(f"\nAgent received signal: {signal}")
+def run_agent(signal, is_trade=False):
+    print(f"\nAgent received: {signal}")
 
-    notify(
-        f"Signal received:\n"
-        f"{signal}\n"
-        f"Agent is analyzing..."
-    )
+    from telegram_bot import notify
+
+    if is_trade:
+        notify(
+            f"Signal received:\n"
+            f"{signal}\n"
+            f"Agent is analyzing..."
+        )
 
     messages = [{"role": "user", "content": signal}]
     final_text = ""
@@ -54,7 +56,7 @@ def run_agent(signal):
             elif block.type == "tool_use":
                 print(f"Agent calling tool: {block.name} with {block.input}")
 
-                if block.name == "place_order":
+                if is_trade and block.name == "place_order":
                     notify(
                         f"Placing order:\n"
                         f"Symbol: {block.input.get('symbol')}\n"
@@ -67,10 +69,10 @@ def run_agent(signal):
                 result = execute_tool(block.name, block.input)
                 print(f"Tool result: {result}")
 
-                if block.name == "place_order":
-                    notify(f"Order result:\n{result}")
+                if is_trade and block.name == "place_order":
+                    notify(f"Order placed:\n{result}")
 
-                if block.name == "close_position":
+                if is_trade and block.name == "close_position":
                     notify(
                         f"Position closed:\n"
                         f"Symbol: {block.input.get('symbol')}\n"
@@ -87,18 +89,10 @@ def run_agent(signal):
 
         if response.stop_reason == "end_turn":
             print("Agent completed task.")
-            notify(
-                f"Agent completed:\n"
-                f"{final_text}"
-            )
+            if is_trade:
+                notify(f"Trade completed:\n{final_text}")
             return final_text
 
         messages.append({"role": "user", "content": tool_results})
 
-    notify("Agent reached maximum turns without completing.")
     return "Agent reached maximum turns."
-
-if __name__ == "__main__":
-    run_agent(
-        "Check my account balance and tell me what I can safely risk on the next trade."
-    )

@@ -66,7 +66,7 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
             f"Follow all risk management rules."
         )
 
-    bg.add_task(run_agent, signal)
+    bg.add_task(run_agent, signal, True)
 
     return {
         "status": "Signal received",
