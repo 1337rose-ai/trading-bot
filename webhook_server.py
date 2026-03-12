@@ -1,12 +1,24 @@
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from agent import run_agent
+import threading
 import os
 
 load_dotenv()
 
-app = FastAPI()
 SECRET = os.getenv('WEBHOOK_SECRET')
+
+@asynccontextmanager
+async def lifespan(app):
+    from telegram_bot import main as start_telegram
+    telegram_thread = threading.Thread(target=start_telegram, daemon=True)
+    telegram_thread.start()
+    print("Telegram bot started!")
+    yield
+    print("Shutting down...")
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/health")
 async def health():
