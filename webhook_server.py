@@ -2,19 +2,32 @@ from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from agent import run_agent
-import threading
+from telegram_bot import notify, send_message
+import requests
 import os
 
 load_dotenv()
 
-SECRET = os.getenv('WEBHOOK_SECRET')
+SECRET       = os.getenv('WEBHOOK_SECRET')
+TOKEN        = os.getenv('TELEGRAM_BOT_TOKEN', '')
+MY_ID        = int(os.getenv('TELEGRAM_USER_ID', '0'))
+RAILWAY_URL  = os.getenv('RAILWAY_URL', '')
+
+def register_telegram_webhook():
+    if not RAILWAY_URL:
+        print("RAILWAY_URL not set — Telegram webhook not registered")
+        return
+    url = f"https://api.telegram.org/bot{TOKEN}/setWebhook"
+    webhook_url = f"{RAILWAY_URL}/telegram"
+    r = requests.post(url, json={
+        "url": webhook_url,
+        "drop_pending_updates": True
+    })
+    print(f"Telegram webhook registered: {r.json()}")
 
 @asynccontextmanager
 async def lifespan(app):
-    from telegram_bot import main as start_telegram
-    telegram_thread = threading.Thread(target=start_telegram, daemon=True)
-    telegram_thread.start()
-    print("Telegram bot started!")
+    register_telegram_webhook()
     yield
     print("Shutting down...")
 
@@ -23,6 +36,33 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/health")
 async def health():
     return {"status": "Bot is running"}
+
+@app.post("/telegram")
+async def telegram_webhook(request: Request, bg: BackgroundTasks):
+    body = await request.json()
+    message = body.get("message", {})
+    chat_id = message.get("chat", {}).get("id")
+    user_id = message.get("from", {}).get("id")
+    text    = message.get("text", "")
+
+    if not text or not chat_id:
+        return {"ok": True}
+
+    if user_id != MY_ID:
+        return {"ok": True}
+
+    if text.startswith("/"):
+        return {"ok": True}
+
+    print(f"Received message: {text}")
+    send_message(chat_id, "Got it! Let me check that for you...")
+
+    def handle():
+        result = run_agent(text)
+        send_message(chat_id, result)
+
+    bg.add_task(handle)
+    return {"ok": True}
 
 @app.post("/signal")
 async def receive_signal(request: Request, bg: BackgroundTasks):
@@ -57,7 +97,7 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
             f"  Trailing Stop = 0.5 percent\n"
             f"  Max loss: $2.50 | Target profit: $5.00"
         )
-    elif action == 'SELL':
+    else:
         signal = (
             f"NitrosBull SELL signal received.\n"
             f"Symbol: {symbol}\n"
@@ -97,12 +137,7 @@ async def manual_command(request: Request, bg: BackgroundTasks):
         raise HTTPException(status_code=400, detail="No command provided")
 
     bg.add_task(run_agent, command)
-
-    return {
-        "status":  "Command received",
-        "command": command,
-        "agent":   "running"
-    }
+    return {"status": "Command received", "command": command, "agent": "running"}
 
 if __name__ == "__main__":
     import uvicorn
