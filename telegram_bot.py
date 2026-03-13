@@ -9,7 +9,6 @@ load_dotenv()
 
 MY_ID = int(os.getenv('TELEGRAM_USER_ID', '0'))
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
-WEBHOOK_URL = os.getenv('RAILWAY_URL', '')
 
 def notify(message):
     if not TOKEN or not MY_ID:
@@ -21,6 +20,18 @@ def notify(message):
         print(f"Notification sent: {message}")
     except Exception as e:
         print(f"Telegram notification failed: {e}")
+
+def clear_telegram_session():
+    """Force close any existing Telegram sessions before starting."""
+    try:
+        # Delete any existing webhook
+        requests.post(
+            f"https://api.telegram.org/bot{TOKEN}/deleteWebhook",
+            json={"drop_pending_updates": True}
+        )
+        print("Cleared existing Telegram webhook/session.")
+    except Exception as e:
+        print(f"Clear session note: {e}")
 
 async def handle_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != MY_ID:
@@ -38,21 +49,25 @@ async def handle_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"Error: {str(e)}")
 
-def get_app():
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(MessageHandler(
-        filters.TEXT & ~filters.COMMAND,
-        handle_message
-    ))
-    return app
-
 def main():
     print("Telegram bot starting...")
+
+    # Clear any existing sessions first
+    clear_telegram_session()
+
+    # Wait a moment for Telegram to process the clearance
+    import time
+    time.sleep(3)
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
     async def run():
-        app = get_app()
+        app = ApplicationBuilder().token(TOKEN).build()
+        app.add_handler(MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            handle_message
+        ))
         async with app:
             await app.initialize()
             await app.start()
