@@ -65,7 +65,7 @@ def get_current_price(symbol):
 
 def calculate_qty(symbol):
     price = get_current_price(symbol)
-    qty   = round(MAX_NOTIONAL_USD / price, 6)
+    qty   = round(MAX_NOTIONAL_USD / price, 3)
     print(f"Calculated qty: {qty} (${MAX_NOTIONAL_USD} / ${price})")
     return qty
 
