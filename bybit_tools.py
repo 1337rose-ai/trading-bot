@@ -131,13 +131,16 @@ def execute_tool(name, inputs):
         reentry_done     = False
         reentry_order_id = None
 
-        params = {
-            'category':  'linear',
-            'symbol':    symbol,
-            'side':      side,
-            'orderType': 'Market',
-            'qty':       str(qty),
-        }
+       position_idx = 1 if side == 'Buy' else 2
+
+params = {
+    'category':    'linear',
+    'symbol':      symbol,
+    'side':        side,
+    'orderType':   'Market',
+    'qty':         str(qty),
+    'positionIdx': position_idx,
+}
         if sl_price:
             params['stopLoss']    = str(sl_price)
             params['slTriggerBy'] = 'MarkPrice'

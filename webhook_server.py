@@ -92,10 +92,10 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
             f"Step 3 - Check current market price of {symbol}.\n"
             f"Step 4 - Place BUY market order:\n"
             f"  Quantity = 250 divided by current price\n"
-            f"  Stop Loss = 1 percent below entry\n"
-            f"  Take Profit = 2 percent above entry\n"
+            f"  Stop Loss = 1.2 percent below entry\n"
+            f"  Take Profit = 2.4 percent above entry\n"
             f"  Trailing Stop = 0.5 percent\n"
-            f"  Max loss: $2.50 | Target profit: $5.00"
+            f"  Max loss: $3.00 | Target profit: $6.00"
         )
     else:
         signal = (
@@ -110,10 +110,10 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
             f"Step 3 - Check current market price of {symbol}.\n"
             f"Step 4 - Place SELL market order:\n"
             f"  Quantity = 250 divided by current price\n"
-            f"  Stop Loss = 1 percent above entry\n"
-            f"  Take Profit = 2 percent below entry\n"
+            f"  Stop Loss = 1.2 percent above entry\n"
+            f"  Take Profit = 2.4 percent below entry\n"
             f"  Trailing Stop = 0.5 percent\n"
-            f"  Max loss: $2.50 | Target profit: $5.00"
+            f"  Max loss: $3.00 | Target profit: $6.00"
         )
 
     bg.add_task(run_agent, signal, True)
