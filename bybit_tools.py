@@ -120,7 +120,7 @@ def execute_tool(name, inputs):
         entry_price   = float(inputs.get('price', 0))
         sl_price      = float(inputs.get('stop_loss', 0))
         tp_price      = float(inputs.get('take_profit', 0))
-        trailing_stop = inputs.get('trailing_stop', '0.5')
+        trailing_stop = inputs.get('trailing_stop', '1')
 
         set_leverage(symbol)
 
@@ -207,7 +207,7 @@ def execute_tool(name, inputs):
         sl_price      = float(inputs['stop_loss'])
         tp_price      = float(inputs['take_profit'])
         qty           = calculate_qty(symbol)
-        trailing_stop = inputs.get('trailing_stop', '0.5')
+        trailing_stop = inputs.get('trailing_stop', '1')
 
         set_leverage(symbol)
 

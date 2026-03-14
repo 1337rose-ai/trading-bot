@@ -94,7 +94,7 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
             f"  Quantity = 250 divided by current price\n"
             f"  Stop Loss = 1.2 percent below entry\n"
             f"  Take Profit = 2.4 percent above entry\n"
-            f"  Trailing Stop = 0.5 percent\n"
+            f"  Trailing Stop = 1 percent\n"
             f"  Max loss: $3.00 | Target profit: $6.00"
         )
     else:
@@ -112,7 +112,7 @@ async def receive_signal(request: Request, bg: BackgroundTasks):
             f"  Quantity = 250 divided by current price\n"
             f"  Stop Loss = 1.2 percent above entry\n"
             f"  Take Profit = 2.4 percent below entry\n"
-            f"  Trailing Stop = 0.5 percent\n"
+            f"  Trailing Stop = 1 percent\n"
             f"  Max loss: $3.00 | Target profit: $6.00"
         )
 
