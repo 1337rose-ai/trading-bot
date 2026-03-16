@@ -177,7 +177,7 @@ def execute_tool(name, inputs):
         breakeven_range = entry_price * 0.001
         is_breakeven    = abs(current_price - entry_price) <= breakeven_range
 
-	close_side = 'Sell' if side == 'Buy' else 'Buy'
+        close_side = 'Sell' if side == 'Buy' else 'Buy'
         close_position_idx = 1 if side == 'Buy' else 2
         r = session.place_order(
             category='linear',
