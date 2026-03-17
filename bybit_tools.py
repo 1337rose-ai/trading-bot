@@ -228,7 +228,7 @@ def execute_tool(name, inputs):
             'takeProfit':   str(tp_price),
             'tpTriggerBy':  'MarkPrice',
             'trailingStop': str(trailing_stop),
-            'tpslMode':     'Full',,
+            'tpslMode':     'Full',
             'timeInForce':  'GTC',
         }
 
