@@ -120,7 +120,7 @@ def execute_tool(name, inputs):
         entry_price   = float(inputs.get('price', 0))
         sl_price      = float(inputs.get('stop_loss', 0))
         tp_price      = float(inputs.get('take_profit', 0))
-        trailing_stop = inputs.get('trailing_stop', '1')
+        trailing_stop = str(inputs.get('trailing_stop', '1'))
 
         set_leverage(symbol)
 
@@ -149,6 +149,7 @@ def execute_tool(name, inputs):
             params['tpTriggerBy'] = 'MarkPrice'
         if trailing_stop:
             params['trailingStop'] = str(trailing_stop)
+            params['tpslMode'] = 'Full'
 
         r = session.place_order(**params)
         print(f"Order placed: {r}")
@@ -209,7 +210,7 @@ def execute_tool(name, inputs):
         sl_price      = float(inputs['stop_loss'])
         tp_price      = float(inputs['take_profit'])
         qty           = calculate_qty(symbol)
-        trailing_stop = inputs.get('trailing_stop', '1')
+        trailing_stop = str(inputs.get('trailing_stop', '1'))
 
         set_leverage(symbol)
 
@@ -227,6 +228,7 @@ def execute_tool(name, inputs):
             'takeProfit':   str(tp_price),
             'tpTriggerBy':  'MarkPrice',
             'trailingStop': str(trailing_stop),
+            'tpslMode':     'Full',,
             'timeInForce':  'GTC',
         }
 
