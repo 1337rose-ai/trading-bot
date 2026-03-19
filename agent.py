@@ -2,6 +2,7 @@ import anthropic
 from dotenv import load_dotenv
 from tools import TRADING_TOOLS
 from bybit_tools import execute_tool
+import time
 import os
 
 load_dotenv()
@@ -15,9 +16,9 @@ TRADE SETTINGS:
 - Margin per trade: $25
 - Leverage: 10x
 - Notional position: $250
-- Stop Loss: 1 percent from entry
-- Take Profit: 2 percent from entry
-- Trailing Stop: 0.5 percent
+- Stop Loss: 1.2 percent from entry
+- Take Profit: 2.4 percent from entry
+- Trailing Stop: 1 percent
 - Max daily loss: $10
 
 RULES:
@@ -54,19 +55,29 @@ def run_agent(signal, is_trade=False):
     if is_trade:
         notify(f"Signal received:\n{signal}\nAgent analyzing...")
 
-    messages  = [{"role": "user", "content": signal}]
+    messages   = [{"role": "user", "content": signal}]
     final_text = ""
 
     for turn in range(15):
         print(f"Agent thinking... (turn {turn + 1})")
 
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=2048,
-            system=SYSTEM_PROMPT,
-            tools=TRADING_TOOLS,
-            messages=messages
-        )
+        response = None
+        for attempt in range(3):
+            try:
+                response = client.messages.create(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=2048,
+                    system=SYSTEM_PROMPT,
+                    tools=TRADING_TOOLS,
+                    messages=messages
+                )
+                break
+            except Exception as e:
+                if 'overloaded' in str(e).lower() and attempt < 2:
+                    print(f"API overloaded, retrying in 5 seconds... (attempt {attempt + 1})")
+                    time.sleep(5)
+                else:
+                    raise
 
         tool_results = []
 
@@ -86,7 +97,7 @@ def run_agent(signal, is_trade=False):
                         f"Qty: {block.input.get('qty')}\n"
                         f"Stop Loss: {block.input.get('stop_loss')}\n"
                         f"Take Profit: {block.input.get('take_profit')}\n"
-                        f"Trailing Stop: {block.input.get('trailing_stop', 0.5)}%"
+                        f"Trailing Stop: {block.input.get('trailing_stop', 1)}%"
                     )
 
                 if is_trade and block.name == "place_reentry_order":
